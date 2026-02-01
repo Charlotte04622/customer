@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>補給紀錄系統</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f5f5f5; padding: 20px; }
+    h1 { text-align: center; }
+    form, table { background: #fff; padding: 15px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin-bottom: 20px; }
+    label { display: block; margin-top: 10px; }
+    input, button { padding: 8px; width: 100%; margin-top: 5px; }
+    button { background: #4CAF50; color: white; border: none; cursor: pointer; border-radius: 5px; }
+    button:hover { background: #45a049; }
+    table { width: 100%; border-collapse: collapse; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: center; }
+    th { background: #eee; }
+  </style>
+</head>
+<body>
+
+<h1>補給紀錄系統</h1>
+
+<form id="recordForm">
+  <label>顧客姓名
+    <input type="text" id="name" required>
+  </label>
+
+  <label>客訴時間
+    <input type="datetime-local" id="complaintTime" required>
+  </label>
+
+  <label>電話
+    <input type="tel" id="phone" required>
+  </label>
+
+  <label>客訴品項（限5字）
+    <input type="text" id="item" maxlength="5" required>
+  </label>
+
+  <label>客訴原因（限10字）
+    <input type="text" id="reason" maxlength="10" required>
+  </label>
+
+  <button type="submit">新增紀錄</button>
+</form>
+
+<table>
+  <thead>
+    <tr>
+      <th>顧客姓名</th>
+      <th>客訴時間</th>
+      <th>電話</th>
+      <th>客訴品項</th>
+      <th>客訴原因</th>
+      <th>已補給</th>
+      <th>補給時間</th>
+    </tr>
+  </thead>
+  <tbody id="tableBody"></tbody>
+</table>
+
+<script>
+const form = document.getElementById("recordForm");
+const tableBody = document.getElementById("tableBody");
+
+// 讀取紀錄
+let records = JSON.parse(localStorage.getItem("records")) || [];
+
+// 渲染表格
+function renderTable() {
+  tableBody.innerHTML = "";
+  records.forEach((record, index) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${record.name}</td>
+      <td>${record.complaintTime}</td>
+      <td>${record.phone}</td>
+      <td>${record.item}</td>
+      <td>${record.reason}</td>
+      <td><input type="checkbox" ${record.completed ? "checked" : ""} onchange="toggleComplete(${index}, this.checked)"></td>
+      <td>${record.completeTime || ""}</td>
+    `;
+    tableBody.appendChild(row);
+  });
+}
+
+// 新增紀錄
+form.addEventListener("submit", function(e) {
+  e.preventDefault();
+  const newRecord = {
+    name: document.getElementById("name").value,
+    complaintTime: document.getElementById("complaintTime").value,
+    phone: document.getElementById("phone").value,
+    item: document.getElementById("item").value,
+    reason: document.getElementById("reason").value,
+    completed: false,
+    completeTime: ""
+  };
+  records.push(newRecord);
+  localStorage.setItem("records", JSON.stringify(records));
+  form.reset();
+  renderTable();
+});
+
+// 切換完成狀態
+function toggleComplete(index, status) {
+  records[index].completed = status;
+  records[index].completeTime = status ? new Date().toLocaleString() : "";
+  localStorage.setItem("records", JSON.stringify(records));
+  renderTable();
+}
+
+// 初始化
+renderTable();
+</script>
+
+</body>
+</html>
